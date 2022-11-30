@@ -1,0 +1,20 @@
+QQQQQQQQQQ    QQ QQQQ
+QQQQQQ          QQQQQ
+QQQQQQQ       Q    QQ
+QQQQQQQQQ   QQQ     Q
+QQQQQQQQQQ QQQ Q    Q
+QQQQQQQQQ QQQQ QQ   Q
+QQQ    Q QQQQQ QQQ  Q
+QQ QQQQ  QQQQQ QQQQ Q
+Q Q     Q Q       QQ 
+ Q       Q QQ  QQQ QQ
+ Q        Q       Q Q
+ Q        Q        Q 
+ Q        Q        Q 
+ Q        Q        Q 
+Q Q       Q        Q 
+QQ QQQQQ  Q        Q 
+QQQ     Q Q       Q Q
+QQQQQQQQQQ Q    QQ QQ
+QQQQQQQQQQQ QQQQ  QQQ
+QQQQQQQQQQQQ    QQQQQ
