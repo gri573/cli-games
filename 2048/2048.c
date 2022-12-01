@@ -90,15 +90,19 @@ int main() {
 			system("stty cooked");
 			return 0;
 		case 'a':
+		case 'D':
 			changed = movefield(1, -1, field);
 			break;
 		case 'w':
+		case 'A':
 			changed = movefield(0, -1, field);
 			break;
 		case 'd':
+		case 'C':
 			changed = movefield(1, 1, field);
 			break;
 		case 's':
+		case 'B':
 			changed = movefield(0, 1, field);
 			break;
 		default:
