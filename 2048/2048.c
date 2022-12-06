@@ -84,11 +84,15 @@ int main() {
 		}
 		printfield(field);
 		char c;
-		while ((c = getchar()) == 27);
+		while ((c = getchar()) == 27 || c == '[');
 		switch(c) {
 		case 'q':
-			system("stty cooked");
-			return 0;
+			printf("\nReally Quit?(y/N)");
+			if (getchar() == 'y') {
+				system("stty cooked");
+				return 0;
+			}
+			break;
 		case 'a':
 		case 'D':
 			changed = movefield(1, -1, field);
