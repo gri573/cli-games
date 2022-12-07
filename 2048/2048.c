@@ -87,8 +87,9 @@ int main() {
 		while ((c = getchar()) == 27 || c == '[');
 		switch(c) {
 		case 'q':
-			printf("\nReally Quit?(y/N)");
+			printf("\n\rReally Quit?(y/N)");
 			if (getchar() == 'y') {
+				printf("\n\r");
 				system("stty cooked");
 				return 0;
 			}
