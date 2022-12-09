@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <time.h>
 
-#define FS 3
+int FS = 3;
 #define WC 2048
 
 int ipow(int x, int n) {
@@ -41,7 +41,8 @@ int printfield(char field[FS][FS]) {
 }
 
 int movefield(int swipeAxis, int dir, char field[FS][FS]) {
-	char wasCompressed[FS][FS] = {{0}};
+	char wasCompressed[FS][FS];
+	for (int i = 0; i < FS * FS; i++) wasCompressed[0][i] = 0;
 	int changed = 0;
 	if (swipeAxis < 0 || swipeAxis > 1 || (dir != -1 && dir != 1)) return -1;
 	int ij[2];
@@ -72,8 +73,10 @@ int movefield(int swipeAxis, int dir, char field[FS][FS]) {
 	return changed;
 }
 
-int main() {
-	char field[FS][FS] = {{0}};
+int main(int argc, char** argv) {
+	if (argc > 1) FS = argv[1][0] - 48;
+	char field[FS][FS];
+	for (int i = 0; i < FS * FS; i++) field[0][i] = 0;
 	char freespaces[FS*FS][2];
 	int ij[2] = {0};
 	for (; ij[0] < FS; ij[0]++) for (; ij[1] < FS; ij[1]++) for (int l = 0; l < 2; l++) freespaces[FS*ij[0]+ij[1]][l] = ij[l];
@@ -132,6 +135,7 @@ int main() {
 			system("stty cooked");
 			int score = 0;
 			for (int i = 0; i < FS; i++) for (int j = 0; j < FS; j++) if (field[i][j] > 0) score += 1<<field[i][j];
+			printfield(field);
 			printf("\rYOU WON!\n\nScore: %d\n", score);
 			return 0;
 		}
