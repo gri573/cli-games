@@ -74,7 +74,10 @@ int movefield(int swipeAxis, int dir, char field[FS][FS]) {
 }
 
 int main(int argc, char** argv) {
-	if (argc > 1) FS = argv[1][0] - 48;
+	if (argc > 1) {
+		FS = argv[1][0] - 48;
+		if (argv[1][1] != 0) FS = 10*FS+argv[1][1] - 48;
+	}
 	char field[FS][FS];
 	for (int i = 0; i < FS * FS; i++) field[0][i] = 0;
 	char freespaces[FS*FS][2];
