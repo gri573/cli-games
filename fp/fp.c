@@ -167,7 +167,7 @@ int main(int argc, char* argv[]) {
 			if (control == 27) {
 				printf("\rPause menu: press q to quit, any other key except '[' to continue: ");
 				control = getchar();
-				printf("\n\r");
+				printf("\r");
 				if (control == 91) {
 					control = getchar();
 					switch (control) {
@@ -188,13 +188,13 @@ int main(int argc, char* argv[]) {
 				case 'a': if (cursory > 0) cursory--; break;
 				case 's': if (cursorx < height - 1) cursorx++; break;
 				case 'd': if (cursory < width - 1) cursory++; break;
-				case ' ': {
+				case ' ':
+				case '\t':
 					signed char* c = solving + cursorx * width + cursory;
-				if (*c == '0') *c = '7';
+					if (*c == '0') *c = '7';
 					else if (*c == '7') *c = 0;
 					else *c = '0';
 					break;
-				}
 				case 'b': {
 					signed char* selection = calloc(2048, sizeof(signed char));
 					for (int k = 0; k < 2048; k++) selection[k] = -1;
