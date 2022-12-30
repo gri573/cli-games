@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
+#include <unistd.h>
 
 int FS = 3;
 
@@ -15,29 +16,55 @@ int abs(int x) {
 	return x;
 }
 
-int printfield(char field[FS][FS]) {
+int printfield(char field[FS][FS], int win) {
 	char printstring[3*FS][13*FS];
+	char text[5][17] = {
+		{1,0,0,0,0,0,1,0,0,1,0,0,1,0,0,0,1},
+		{1,0,0,0,0,0,1,0,0,1,0,0,1,1,0,0,1},
+		{1,0,0,0,0,0,1,0,0,1,0,0,1,0,1,0,1},
+		{0,1,0,1,0,1,0,0,0,1,0,0,1,0,0,1,1},
+		{0,0,1,0,1,0,0,0,0,1,0,0,1,0,0,0,1}
+	};
 	for (int i = 0; i < 39*FS*FS; i++) printstring[0][i] = ' ';
 	for (int i = 0; i < FS; i++) {
 		for (int j = 0; j < FS; j++) {
 			int val = 1<<field[i][j];
 			char color[8] = "\033[1;40m";
-			if (val == 1) color[5] = 48;
-			else color[5] = field[i][j] % 6 + 49;
+			if (val > 1) color[5] = field[i][j] % 6 + 49;
 			for (int k = 0; k < 3; k++) for (int l = 0; l < 7; l++) printstring[3*i+k][13*j+l] = color[l];
 			if (val > 1) for (int k = 0; k < 4; k++) if (ipow(10, k) <= val) printstring[3*i+1][13*j+11-k] = 48 + (val / ipow(10, k)) % 10;
 		}
 	}
 	printf("\r");
 	for (int i = 0; i < 3*FS; i++) {
-		char thisstring[13*FS+9];
+		char thisstring[13*FS];
 		for (int j = 0; j < 13*FS; j++) thisstring[j] = printstring[i][j];
-		const char clearcol[7] = "\033[1;0m";
-		for (int j = 0; j < 6; j++) thisstring[j+13*FS] = clearcol[j];
-		thisstring[13*FS+6] = '\n';
-		thisstring[13*FS+7] = '\r';
-		thisstring[13*FS+8] = 0;
-		printf(thisstring);
+		for (int k = 0; k < 13*FS; k++) {
+			char sparkle = 0;
+			if (win && k % 13 >= 7 && abs(rand()) % 20 < 2) sparkle = rand() % 6 + 49;
+			if (sparkle) {
+				char color[8] = "\033[1;40m";
+				color[5] = sparkle;
+				printf("%s", color);
+			}
+			if (win && k % 13 >= 7) {
+				int vpos = i - 3*FS/2 + 2;
+				int hpos = (6 * (k/13) + k%13 - 7) - 3*FS + 9;
+				if (vpos >= 0 && vpos < 5 && hpos >= 0 && hpos < 17 && text[vpos][hpos]) {
+					sparkle = win + 48;
+					char color[8] = "\033[1;40m";
+					color[5] = sparkle;
+					printf("%s", color);
+					thisstring[k] = 'O';
+				}
+			}
+			putchar(thisstring[k]);
+			if (sparkle) {
+				thisstring[13 * (k / 13) + 7] = 0;
+				printf("%s", thisstring + 13 * (k / 13));
+			}
+		}
+		printf("\033[1;0m\n\r");
 	}
 	printf("\n\r");
 	return 0;
@@ -88,7 +115,10 @@ int main(int argc, char** argv) {
 			for (int i = 0; argv[2][i] != 0; i++) WC = 10 * WC + argv[2][i] - 48;
 		}
 	}
-	if (WC == 0) WC = 1 << ((4 * FS * FS) / 5);
+	if (WC == 0) {
+		WC = 1 << ((4 * FS * FS) / 5);
+		if (WC > 2048) WC = 2048;
+	}
 	printf("%d\n", WC);
 	char field[FS][FS];
 	for (int i = 0; i < FS * FS; i++) field[0][i] = 0;
@@ -103,13 +133,14 @@ int main(int argc, char** argv) {
 	for (int k = 0; k < freecount; k++) printf("(%d, %d); ", freespaces[k][0], freespaces[k][1]);
 	printf("\n");
 	int changed = 1;
+	int won = 0;
 	system("stty raw");
 	for (int k = 0; freecount; k++) {
 		if (changed > 0) {
 			char* new = freespaces[abs(rand()) % freecount];
 			field[new[0]][new[1]] = 1;
 		}
-		printfield(field);
+		printfield(field, 0);
 		char c;
 		while ((c = getchar()) == 27 || c == '[');
 		switch(c) {
@@ -152,13 +183,19 @@ int main(int argc, char** argv) {
 				}
 			}
 		}
-		if (maxval >= WC) {
-			system("stty cooked");
+		if (!won && maxval >= WC) {
+			// system("stty cooked");
+			won = 1;
 			int score = 0;
 			for (int i = 0; i < FS; i++) for (int j = 0; j < FS; j++) if (field[i][j] > 0) score += 1<<field[i][j];
-			printfield(field);
-			printf("\rYOU WON!\n\nScore: %d\n", score);
-			return 0;
+			for (int j = 1; j < 7; j++) {
+				putchar('\a');
+				printfield(field, j);
+				usleep(100000);
+				printfield(field, j);
+				usleep(100000);
+			}
+			//return 0;
 		}
 	}
 	system("stty cooked");
@@ -167,3 +204,9 @@ int main(int argc, char** argv) {
 	printf("\rGAME OVER\n\nScore: %d\n", score);
 	return 0;
 }
+
+/*
+Local Variables:
+compile-command: "make -C .."
+End:
+*/
