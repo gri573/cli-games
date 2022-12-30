@@ -3,7 +3,6 @@
 #include <time.h>
 
 int FS = 3;
-#define WC 2048
 
 int ipow(int x, int n) {
 	int p = 1;
@@ -11,8 +10,12 @@ int ipow(int x, int n) {
 	return p;
 }
 
+int abs(int x) {
+	if (x < 0) return -x;
+	return x;
+}
+
 int printfield(char field[FS][FS]) {
-	
 	char printstring[3*FS][13*FS];
 	for (int i = 0; i < 39*FS*FS; i++) printstring[0][i] = ' ';
 	for (int i = 0; i < FS; i++) {
@@ -74,21 +77,36 @@ int movefield(int swipeAxis, int dir, char field[FS][FS]) {
 }
 
 int main(int argc, char** argv) {
+	int now = (int) time(0);
+	for (int k = 0; k < now % 1000; k++) rand();
+	int WC = 0;
 	if (argc > 1) {
 		FS = argv[1][0] - 48;
 		if (argv[1][1] != 0) FS = 10*FS+argv[1][1] - 48;
+		if (argc > 2) {
+			WC = 0;
+			for (int i = 0; argv[2][i] != 0; i++) WC = 10 * WC + argv[2][i] - 48;
+		}
 	}
+	if (WC == 0) WC = 1 << ((4 * FS * FS) / 5);
+	printf("%d\n", WC);
 	char field[FS][FS];
 	for (int i = 0; i < FS * FS; i++) field[0][i] = 0;
 	char freespaces[FS*FS][2];
-	int ij[2] = {0};
-	for (; ij[0] < FS; ij[0]++) for (; ij[1] < FS; ij[1]++) for (int l = 0; l < 2; l++) freespaces[FS*ij[0]+ij[1]][l] = ij[l];
+	for (int i = 0; i < FS; i++) {
+		for (int j = 0; j < FS; j++) {
+			freespaces[FS*i+j][0] = i;
+			freespaces[FS*i+j][1] = j;
+		}
+	}
 	int freecount = FS*FS;
+	for (int k = 0; k < freecount; k++) printf("(%d, %d); ", freespaces[k][0], freespaces[k][1]);
+	printf("\n");
 	int changed = 1;
 	system("stty raw");
 	for (int k = 0; freecount; k++) {
 		if (changed > 0) {
-			char* new = freespaces[rand()%freecount];
+			char* new = freespaces[abs(rand()) % freecount];
 			field[new[0]][new[1]] = 1;
 		}
 		printfield(field);
@@ -149,4 +167,3 @@ int main(int argc, char** argv) {
 	printf("\rGAME OVER\n\nScore: %d\n", score);
 	return 0;
 }
-
