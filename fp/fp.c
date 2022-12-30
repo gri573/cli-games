@@ -189,12 +189,13 @@ int main(int argc, char* argv[]) {
 				case 's': if (cursorx < height - 1) cursorx++; break;
 				case 'd': if (cursory < width - 1) cursory++; break;
 				case ' ':
-				case '\t':
+				case '\t': {
 					signed char* c = solving + cursorx * width + cursory;
 					if (*c == '0') *c = '7';
 					else if (*c == '7') *c = 0;
 					else *c = '0';
 					break;
+				}
 				case 'b': {
 					signed char* selection = calloc(2048, sizeof(signed char));
 					for (int k = 0; k < 2048; k++) selection[k] = -1;
