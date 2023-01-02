@@ -108,8 +108,12 @@ int main(int argc, char** argv) {
 	for (int k = 0; k < now % 1000; k++) rand();
 	int WC = 0;
 	if (argc > 1) {
-		FS = argv[1][0] - 48;
-		if (argv[1][1] != 0) FS = 10*FS+argv[1][1] - 48;
+		if (argv[1][0] >= 48 && argv[1][0] < 58) FS = argv[1][0] - 48;
+		else {
+			printf("Invalid Argument!\n");
+			return -1;
+		}
+		if (argv[1][1] >= 48 && argv[1][1] < 58) FS = 10*FS+argv[1][1] - 48;
 		if (argc > 2) {
 			WC = 0;
 			for (int i = 0; argv[2][i] != 0; i++) WC = 10 * WC + argv[2][i] - 48;
@@ -139,11 +143,16 @@ int main(int argc, char** argv) {
 		if (changed > 0) {
 			char* new = freespaces[abs(rand()) % freecount];
 			field[new[0]][new[1]] = 1;
+			printfield(field, 0);
 		}
-		printfield(field, 0);
 		char c;
 		while ((c = getchar()) == 27 || c == '[');
 		switch(c) {
+		case '?':
+		case ' ':
+			printfield(field, 0);
+			changed = 0;
+			break;
 		case 'q':
 			printf("\n\rReally Quit?(y/N)");
 			if (getchar() == 'y') {
