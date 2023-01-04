@@ -21,4 +21,4 @@ fp/mkimg.exe: fp/mkimg.c
 	$(CC) $(CFLAGS) -o fp/mkimg.exe $?
 
 clean:
-	rm -f sudoku/sudoku.exe 2048/2048.exe fp/fp.exe
+	rm -f */*.exe
