@@ -90,7 +90,7 @@ int genSudoku(char field[9][9]) {
 				int squareEntry[2] = {3 * (i / 3) + k % 3, 3 * (j / 3) + k / 3};
 				if (!(squareEntry[0] == i && squareEntry[1] == j) && field[squareEntry[0]][squareEntry[1]] > 0) invalid[field[squareEntry[0]][squareEntry[1]] - 1] = 1;
 			}
-			char num = rand() % 9;
+			int num = rand() % 9;
 			int k = 0;
 			while (k < 10 && invalid[num]) {
 				num = (num + 1) % 9;
@@ -134,10 +134,8 @@ int main() {
 		printSudoku(field, cursorLoc);
 		printf("\n\r");
 		char action = getchar();
-		char esc = 0;
-		while (action == 27) {
+		while (action == 27 || action == '[') {
 			action = getchar();
-			esc = 1;
 		}
 		switch (action) {
 			case 'A':

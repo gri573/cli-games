@@ -126,7 +126,7 @@ int main(int argc, char** argv) {
 	printf("%d\n", WC);
 	char field[FS][FS];
 	for (int i = 0; i < FS * FS; i++) field[0][i] = 0;
-	char freespaces[FS*FS][2];
+	int freespaces[FS*FS][2];
 	for (int i = 0; i < FS; i++) {
 		for (int j = 0; j < FS; j++) {
 			freespaces[FS*i+j][0] = i;
@@ -141,7 +141,7 @@ int main(int argc, char** argv) {
 	system("stty raw");
 	for (int k = 0; freecount; k++) {
 		if (changed > 0) {
-			char* new = freespaces[abs(rand()) % freecount];
+			int* new = freespaces[abs(rand()) % freecount];
 			field[new[0]][new[1]] = 1;
 			printfield(field, 0);
 		}
