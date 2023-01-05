@@ -6,14 +6,13 @@ int move(int** stacks) {
 	int quit = 0;
 	printf("Please enter the stack from which you want to move cards (1-7, E-H, O, D, C, Q): ");
 	char c = getchar();
+	if (c > 96) c -= 32;
 	switch (c) {
-	case 'q':
 	case 'Q':
 		{
 			quit = 1;
 			break;
 		}
-	case 'd':
 	case 'D':
 		{
 			int ndeck = -1;
@@ -35,7 +34,6 @@ int move(int** stacks) {
 			} else {
 				for (int k = 0; k < 3; k++) {
 					if (ndeck >= 0) {
-						printf("moving %d!\n\r", stacks[7][ndeck]);
 						stacks[8][nopen] = stacks[7][ndeck];
 						stacks[7][ndeck] = 0;
 						ndeck--;
@@ -45,7 +43,6 @@ int move(int** stacks) {
 			}
 			break;
 		}
-	case 'o':
 	case 'O':
 		{
 			int nopen = -1;
@@ -59,7 +56,12 @@ int move(int** stacks) {
 			for (int i = 0; i < 7; i++) {
 				int j;
 				for (j = -1; stacks[i][j+1]; j++);
-				if (j != -1 && (stacks[i][j] - 1) / 26 != (stacks[8][nopen] - 1) / 26 && (stacks[i][j] - 1) % 13 - (stacks[8][nopen] - 1) % 13 == 1) {
+				if (j == -1) {
+					if ((stacks[8][nopen] - 1) % 13 == 12) {
+						possiblelocs[n] = i + 49;
+						n++;
+					}
+				} else if ((stacks[i][j] - 1) / 26 != (stacks[8][nopen] - 1) / 26 && (stacks[i][j] - 1) % 13 - (stacks[8][nopen] - 1) % 13 == 1) {
 					possiblelocs[n] = i + 49;
 					n++;
 				}
@@ -78,6 +80,7 @@ int move(int** stacks) {
 				if (c > 96) c -= 32;
 				if (c == 'C') {
 					printf("\r");
+					free(possiblelocs);
 					return move(stacks);
 				}
 				if (c == 'Q') {
@@ -120,6 +123,10 @@ int move(int** stacks) {
 			}
 			char cnum;
 			int maxcnum = stackh - stacks[STC-1][stackn] + 1;
+			if (maxcnum <= 0) {
+				printf("\n\rOops, something went wrong, no open cards in non-empty stack!\n\r");
+				return -1;
+			}
 			if (maxcnum == 1) cnum = 1;
 			else {
 				int wrong = 1;
@@ -134,19 +141,17 @@ int move(int** stacks) {
 					}
 					if (cnum > 64) cnum -= 7;
 					cnum -= 48;
-					if (cnum > maxcnum) printf("\n\rThere aren't enough visible cards in that stack!");
+					if (cnum > maxcnum) printf("\n\rThere aren't enough open cards in that stack!");
 					else wrong = 0;
 				}
 			}
 			char* possiblelocs = calloc(10, sizeof(char));
 			int card = stacks[stackn][stackh-cnum+1];
-			printf(" %d, %d", (card - 1) / 13, (card - 1) % 13);
 			int n = 0;
 			for (int i = 0; i < 7; i++) {
 				if (i == stackn) continue;
 				int j = -1;
 				for (; stacks[i][j+1]; j++);
-				printf(" %d", j);
 				if (j == -1) {
 					if ((card - 1) % 13 == 12) {
 						possiblelocs[n] = i + 49;
@@ -158,12 +163,85 @@ int move(int** stacks) {
 				}
 			}
 		    if (cnum == 1 && (card - 1)%13 + 1 - stacks[9][(card - 1)/13] == 1) possiblelocs[n] = (card - 1)/13 + 69;
+			if (!possiblelocs[0]) {
+				printf("\n\rThis card cannot validly be moved anywhere!\n\r");
+				return move(stacks);
+			}
 			if (cnum == 1) printf("\n\rWhere do you want to move this card? (");
 			else printf("\n\rWhere do you want to move these cards? (");
 			for (int k = 0; possiblelocs[k]; k++) printf("%c, ", possiblelocs[k]);
 			printf("C, Q) :");
-			c = getchar();
+			int wrong = 1;
+			while (wrong) {
+				c = getchar();
+				if (c > 96) c -= 32;
+				for (int k = 0; possiblelocs[k]; k++) if (c == possiblelocs[k]) wrong = 0;
+				if (wrong) {
+					printf("\n\rInvalid input! Please enter ");
+					for (int k = 0; possiblelocs[k]; k++) printf("%c, ", possiblelocs[k]);
+					printf("C or Q: ");
+				}
+			}
+			if (c == 'Q') quit = 1;
+			else if (c == 'C') {
+				printf("\r");
+				free(possiblelocs);
+				return move(stacks);
+			} else if (c > 48 && c < 56) {
+				int dest = c - 49;
+				int j = 0;
+				for (; stacks[dest][j]; j++);
+				for (int k = 0; k < cnum; k++) {
+					stacks[dest][j+k] = stacks[stackn][stackh+k+1 - cnum];
+					stacks[stackn][stackh+k+1 - cnum] = 0;
+				}
+			} else if (c > 68 && c < 73) {
+				int dest = c - 69;
+				stacks[9][dest]++;
+				stacks[stackn][stackh] = 0;
+			}
+			if (stacks[STC-1][stackn] > stackh - cnum) stacks[STC-1][stackn] = stackh - cnum;
 			free(possiblelocs);
+			break;
+		}
+	case 'E':
+	case 'F':
+	case 'G':
+	case 'H':
+		{
+			int stackn = c - 69;
+			if (stacks[9][stackn] == 0) {
+				printf("\n\rThat stack is empty!\n\r");
+				return move(stacks);
+			}
+			char* possiblelocs = calloc(8, sizeof(char));
+			int n = 0;
+			for (int i = 0; i < 7; i++) {
+				int j = -1;
+				for (; stacks[i][j+1]; j++);
+				if (j >= 0 && (stacks[i][j] - 1) / 26 != stackn / 2 && (stacks[i][j] - 1) % 13 + 1 - stacks[9][stackn] == 1) {
+					possiblelocs[n] = i + 49;
+					n++;
+				}
+			}
+			printf("\n\rWhere do you want to move this card? (");
+			for (int k = 0; possiblelocs[k]; k++) printf("%c, ", possiblelocs[k]);
+			printf("C, Q) ");
+			int wrong = 1;
+			while (wrong) {
+				c = getchar();
+				if (c > 96) c -= 32;
+				for (int k = 0; possiblelocs[k]; k++) if (c == possiblelocs[k]) wrong = 0;
+				if (wrong) printf("Invalid Input! please enter ");
+				for (int k = 0; possiblelocs[k]; k++) printf("%c, ", possiblelocs[k]);
+				printf("C or Q: ");
+			}
+			int j = 0;
+			for (;stacks[c-49][j]; j++);
+			stacks[c-49][j] = 13 * stackn + stacks[9][stackn];
+			stacks[9][stackn]--;
+			free(possiblelocs);
+			break;
 		}
 	}
 	printf("\n\r");

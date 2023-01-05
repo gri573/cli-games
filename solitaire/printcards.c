@@ -84,7 +84,7 @@ void printcards(int** stacks) {
 	}
 	// to-remove stacks
 	for (int i = 0; i < 7; i++) {
-		int stackheight = 0;
+		int stackheight = -1;
 		for (int j = 8; j < IMHEIGHT; j++) {
 			int j0 = j - 8;
 			for (int k = 0; k < 3; k++) {
@@ -126,9 +126,16 @@ void printcards(int** stacks) {
 				} else {
 				int j1 = j0 - stackheight;
 				if (j1 < 6) {
-					for (int k = 0; cardfaces[(stacks[i][stackheight]-1)/13][j1][k]; k++) {
-						image[j][ns[j]] = cardfaces[(stacks[i][stackheight]-1)/13][j1][k];
-						ns[j]++;
+					if (stackheight >= 0) {
+						for (int k = 0; cardfaces[(stacks[i][stackheight]-1)/13][j1][k]; k++) {
+							image[j][ns[j]] = cardfaces[(stacks[i][stackheight]-1)/13][j1][k];
+							ns[j]++;
+						}
+					} else {
+						for (int k = 0; cardfaces[4][j1][k]; k++) {
+							image[j][ns[j]] = cardfaces[4][j1][k];
+							ns[j]++;
+						}
 					}
 				} else {
 					for (int k = 0; k < 6; k++) {

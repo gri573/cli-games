@@ -25,6 +25,13 @@ int main() {
 	while (!win && !quit) {
 		printcards(stacks);
 		quit = move(stacks);
+		if (quit) {
+			printf("\n\rReally quit? (y/N): ");
+			char c = getchar();
+			if (c > 96) c -= 32;
+			if (c != 'Y') quit = 0;
+			printf("\n\r");
+		}
 		if (stacks[7][0] == 0 && stacks[8][0] == 0) {
 			win = 1;
 			for (int i = 0; i < 7; i++) if (stacks[STC-1][i] > 0) win = 0;
