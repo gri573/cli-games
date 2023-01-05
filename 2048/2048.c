@@ -2,7 +2,6 @@
 #include <stdlib.h>
 #include <time.h>
 #include <unistd.h>
-
 int FS = 3;
 
 int ipow(int x, int n) {
