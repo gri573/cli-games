@@ -125,6 +125,7 @@ void printcards(int** stacks) {
 				}
 				} else {
 				int j1 = j0 - stackheight;
+				if (stackheight < 0) j1--;
 				if (j1 < 6) {
 					if (stackheight >= 0) {
 						for (int k = 0; cardfaces[(stacks[i][stackheight]-1)/13][j1][k]; k++) {
