@@ -106,9 +106,36 @@ int genSudoku(char field[9][9]) {
 	return 0;
 }
 
-int main() {
+int hardenSudoku(char field[9][9]) {
+	char solveField[9][9];
+	for (int i = 0; i < 9; i++) {
+		for (int j = 0; j < 9; j++) {
+			char prevEntry = field[i][j];
+			if (!prevEntry) continue;
+			field[i][j] = 0;
+			for (int k = 0; k < 9; k++) for (int l = 0; l < 9; l++) solveField[k][l] = field[k][l];
+			int done = solve(solveField);
+			if (done != 1) field[i][j] = prevEntry;
+			//else printf("removed %d at (%d, %d)\n", prevEntry, i, j);
+		}
+	}
+	printf("Hardened Sudoku\n");
+	return 0;
+}
+
+int main(int argc, char** argv) {
 	char field[9][9] = {{0}};
 	genSudoku(field);
+	if (argc > 1) {
+		char hard = 1;
+		for (int i = 0; argv[1][i] && i < 3; i++) if (argv[1][i] != "-H"[i]) hard = 0;
+		if (hard) hardenSudoku(field);
+		else {
+			hard = 1;
+			for (int i = 0; argv[1][i] && i < 6; i++) if (argv[1][i] != "--hard"[i]) hard = 0;
+			if (hard) hardenSudoku(field);
+		}
+	}
 	char orig[9][9];
 	char solution[9][9];
 	for (int i = 0; i < 9; i++) {
