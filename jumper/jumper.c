@@ -7,7 +7,10 @@ int printframe(int width, int height, char frame[width][height], int color[width
 float clamp(float val, float min, float max);
 
 float fract(float val);
-int main() {
+
+int ipow(int n, int e);
+
+int main(int argc, char** argv) {
 	initscr();
 	start_color();
 	if (!has_colors()) {
@@ -26,23 +29,26 @@ int main() {
 	float pos[2] = {0, 0};
 	float heights[10] = {0};
 	float sizes[10] = {10, 10, 10, 10, 10};
-	for (int k = 5; k < 10; k++) {
+	for (int k = 2; k < 10; k++) {
 		heights[k] = 0.002 * (rand() % 1000) - 1;
-		sizes[k] = 0.0007 * (rand() % 1000) + 0.5;
+		sizes[k] = 0.0005 * (rand() % 1000) + 0.7;
 	}
-	#define DT 50
-	#define V 2.0
+	int DT = 30;
+	if (argc > 1)
+		DT = atoi(argv[1]);
+	#define V 0.3
 	#define BARWIDTH 0.21
 	int xpos0 = 0;
+	float xpos = 0;
 	for (int k = 0; 1; k++) {
-		float xpos = 0.001 * DT * V * k;
+		xpos += 0.002 * DT * V * sqrt(0.01*k + 1);
 		if ((int) xpos - 1.5 > xpos0) {
 			for (int k = 0; k < 9; k++) {
 				heights[k] = heights[k+1];
 				sizes[k] = sizes[k+1];
 			}
 			heights[9] = 0.002 * (rand() % 1000) - 1;
-			sizes[9] = 0.0007 * (rand() % 1000) + 0.5;
+			sizes[9] = 0.0005 * (rand() % 1000) + 0.5;
 			xpos0 += 3;
 		}
 		char c = getch();
@@ -71,16 +77,21 @@ int main() {
 					}
 				}
 			}
+		for (int i = 0; i < 6; i++) {
+			colors[i][0] = 0;
+			frame[i][0] = (DT * k) / ipow(10, 5-i) % 10 + 48;
+		}
 		if (fract(xpos / 3.0 - 0.1) < BARWIDTH) {
 			if (fabs(pos[0] + heights[1]) > sizes[1] - 0.1) {
-			    for (int k = 0; k < 10; k++) {
-					frame[k+2][5] = "Game Over!"[k];
+				const char endgamestr[] = "Game Over! Press ENTER to quit.";
+			    for (int k = 0; endgamestr[k] != 0; k++) {
+					frame[k+2][5] = endgamestr[k];
 					colors[k+2][5] = 0;
 				}
 				printframe(COLS, LINES, frame, colors);
 				while ((c = getch()) != '\n') {
 					refresh();
-					napms(50);
+					napms(100);
 				}
 				endwin();
 				return 0;
@@ -128,4 +139,10 @@ float fract(float val) {
 	if (val > 0)
 		return val - (int) val;
 	return val - (int) val - 1;
+}
+
+int ipow(int n, int e) {
+	int x = 1;
+	for (int k = 0; k < e; k++) x *= n;
+	return x;
 }
