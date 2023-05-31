@@ -138,14 +138,17 @@ int main(int argc, char** argv) {
 	}
 	char orig[9][9];
 	char solution[9][9];
+	char lastCorrect[9][9];
 	for (int i = 0; i < 9; i++) {
 		for (int j = 0; j < 9; j++) {
 			solution[i][j] = field[i][j];
 			orig[i][j] = field[i][j];
+			lastCorrect[i][j] = field[i][j];
 		}
 	}
 	solve(solution);
 	int solved = 0;
+	int correct = 1;
 	int cursorLoc[2] = {4, 4};
 	int numcount[9] = {0};
 	system("stty raw");
@@ -190,9 +193,9 @@ int main(int argc, char** argv) {
 				}
 				break;
 			case 'r':
-				printf("\n\rreally reset? (y/N)\n\r");
+				printf("\n\rreally reset to last correct state? (y/N)\n\r");
 				if (getchar() == 'y') {
-					for (int i = 0; i < 9; i++) for (int j = 0; j < 9; j++) field[i][j] = orig[i][j];
+					for (int i = 0; i < 9; i++) for (int j = 0; j < 9; j++) field[i][j] = lastCorrect[i][j];
 				}
 				break;
 			case '1':
@@ -204,11 +207,45 @@ int main(int argc, char** argv) {
 			case '7':
 			case '8':
 			case '9':
-				if (!orig[cursorLoc[0]][cursorLoc[1]]) field[cursorLoc[0]][cursorLoc[1]] = action - 48;
+				if (!orig[cursorLoc[0]][cursorLoc[1]]) {
+					field[cursorLoc[0]][cursorLoc[1]] = action - 48;
+					correct = 1;
+					for (int x = 0; x < 9; x++) {
+						for (int y = 0; y < 9; y++) {
+							if (
+								field[x][y] &&
+								field[x][y] !=
+								solution[x][y]
+								)
+								correct = 0;
+							if (!correct) break;
+						}
+						if (!correct) break;
+					}
+					if (correct) {
+						lastCorrect[cursorLoc[0]][cursorLoc[1]] = action - 48;
+					}
+				}
 				break;
 			case ' ':
 			case '0':
+				correct = 1;
 				field[cursorLoc[0]][cursorLoc[1]] = orig[cursorLoc[0]][cursorLoc[1]];
+				for (int x = 0; x < 9; x++) {
+					for (int y = 0; y < 9; y++) {
+						if (
+							field[x][y] &&
+							field[x][y] !=
+							solution[x][y]
+							)
+							correct = 0;
+						if (!correct) break;
+					}
+					if (!correct) break;
+				}
+				if (correct) {
+					lastCorrect[cursorLoc[0]][cursorLoc[1]] = 0;
+				}
 				break;
 		}
 		solved = 1;
