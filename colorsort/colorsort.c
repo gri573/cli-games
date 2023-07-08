@@ -74,20 +74,24 @@ int main(int argc, char** argv) {
 			stacks[n1][j1-1] = 0;
 		}
 	}
+	int pos = N_STACKS/2;
 	while(continue_loop) {
 		clear();
 		for (int n = 0; n < N_STACKS; n++)
 			drawstack(n, stacks);
 		color_set(0, NULL);
 		signed char c = getch();
+		int n1 = 0;
+		int n2 = 0;
 		switch(c) {
 		case 'q':
-		case 'Q':
+		case 'Q': {
 			mvaddstr(0, 0, "Really Quit? [y/N]");
 			if ((c = getch()) == 'y' || c == 'Y') {
 				continue_loop = 0;
 			}
 			break;
+		}
 		case '1':
 		case '2':
 		case '3':
@@ -97,7 +101,7 @@ int main(int argc, char** argv) {
 		case '7':
 		case '8':
 		case '9': {
-			int n1 = c - 48;
+			n1 = c - 48;
 			if ((c = getch() - 48) >= 0 && c < 10) {
 				n1 = 10 * n1 + c ;
 			}
@@ -115,7 +119,7 @@ int main(int argc, char** argv) {
 			color_set(0, NULL);
 			mvaddstr(LINES - 8, 4 * n1 - 2, "\\/");
 			c = getch();
-			int n2 = c - 48;
+			n2 = c - 48;
 			if ((c = getch() - 48) >= 0 && c < 10) {
 				n2 = 10 * n2 + c ;
 			}
@@ -135,21 +139,62 @@ int main(int argc, char** argv) {
 			}
 			n1--;
 			n2--;
-			int j1, j2;
-			for (j1 = 0; stacks[n1][j1]; j1++);
-			for (j2 = 0; stacks[n2][j2]; j2++);
-			char col = stacks[n1][j1-1];
-			while (j1 > 0 && j2 < 4 && stacks[n1][j1-1] == col) {
-				stacks[n2][j2] = stacks[n1][j1-1];
-				stacks[n1][j1-1] = 0;
-				j1--;
-				j2++;
+			break;
+		}
+		case 27: {
+			c = getch();
+			if (c == '[') {
+				while ((c = getch()) != '\t' && c != '\n' && c != EOF) {
+					if (c == 27 || c == '[')
+						c = getch();
+					if (c == 'C' && pos < N_STACKS - 1) {
+						mvaddstr(LINES - 8, 4 * pos + 2, "        ");
+						pos++;
+						mvaddstr(LINES - 8, 4 * pos + 2, "\\/");
+					}
+					if (c == 'D' && pos > 0) {
+						mvaddstr(LINES - 8, 4 * pos + 2, "        ");
+						pos--;
+						mvaddstr(LINES - 8, 4 * pos + 2, "\\/");
+					}
+				}
+				if (c == EOF) {
+					continue_loop = 0;
+					break;
+				}
+				n1 = pos;
+				while ((c = getch()) != '\t' && c != '\n' && c != EOF) {
+					if (c == 27)
+						c = getch();
+					if (c == 'C' && pos < N_STACKS - 1) {
+						mvaddstr(LINES - 8, 4 * pos + 2, "        ");
+						pos++;
+						mvaddstr(LINES - 8, 4 * pos + 2, "\\/");
+					}
+					if (c == 'D' && pos > 0) {
+						mvaddstr(LINES - 8, 4 * pos + 2, "        ");
+						pos--;
+						mvaddstr(LINES - 8, 4 * pos + 2, "\\/");
+					}
+				}
+				n2 = pos;
 			}
 			break;
 		}
-		case EOF:
+		case EOF: {
 			continue_loop = 0;
 			break;
+		}
+		}
+		int j1, j2;
+		for (j1 = 0; j1 < 4 && stacks[n1][j1]; j1++);
+		for (j2 = 0; j2 < 4 && stacks[n2][j2]; j2++);
+		char col = j1 > 0 ? stacks[n1][j1-1] : 0;
+		while (j1 > 0 && j2 < 4 && stacks[n1][j1-1] == col) {
+			stacks[n2][j2] = stacks[n1][j1-1];
+			stacks[n1][j1-1] = 0;
+			j1--;
+			j2++;
 		}
 	}
 	endwin();

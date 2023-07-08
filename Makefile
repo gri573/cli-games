@@ -34,10 +34,10 @@ solitaire/solitaire.exe: $(SOLITAIRE_O)
 	$(CC) $(CFLAGS) -o $@ $(SOLITAIRE_O)
 
 jumper/jumper.exe: jumper/jumper.c
-	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ $?
+	$(CC) $(CFLAGS) -o $@ $? $(LDFLAGS)
 
 colorsort/colorsort.exe: colorsort/colorsort.c
-	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ $?
+	$(CC) $(CFLAGS) -o $@ $? $(LDFLAGS)
 
 clean:
 	rm -f */*.exe */*.o
