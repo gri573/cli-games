@@ -29,9 +29,12 @@ void drawstack(int n, char stacks[][5]) {
 	}
 }
 
-#define N_STACKS 10
 
-int main() {
+int main(int argc, char** argv) {
+	int N_STACKS = 10;
+	if (argc > 1) {
+		N_STACKS = atoi(argv[1]);
+	}
 	int now = (int) time(0);
 	for (int k = 0; k < now % 1000; k++) rand();
 	initscr();
@@ -75,11 +78,11 @@ int main() {
 		clear();
 		for (int n = 0; n < N_STACKS; n++)
 			drawstack(n, stacks);
-		char c = getch();
+		color_set(0, NULL);
+		signed char c = getch();
 		switch(c) {
 		case 'q':
 		case 'Q':
-			color_set(0, NULL);
 			mvaddstr(0, 0, "Really Quit? [y/N]");
 			if ((c = getch()) == 'y' || c == 'Y') {
 				continue_loop = 0;
