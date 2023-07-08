@@ -96,7 +96,7 @@ int main(int argc, char** argv) {
 		case '6':
 		case '7':
 		case '8':
-		case '9':
+		case '9': {
 			int n1 = c - 48;
 			if ((c = getch() - 48) >= 0 && c < 10) {
 				n1 = 10 * n1 + c ;
@@ -146,6 +146,7 @@ int main(int argc, char** argv) {
 				j2++;
 			}
 			break;
+		}
 		case EOF:
 			continue_loop = 0;
 			break;
