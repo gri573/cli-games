@@ -69,7 +69,7 @@ int main(int argc, char** argv) {
 		int j1, j2;
 		for (j1 = 0; stacks[n1][j1]; j1++);
 		for (j2 = 0; stacks[n2][j2]; j2++);
-		if (j1 > 0 && j2 < 4) {
+		if (j1 > 0 && j2 < 4 && n1 != n2) {
 			stacks[n2][j2] = stacks[n1][j1-1];
 			stacks[n1][j1-1] = 0;
 		}
@@ -134,7 +134,8 @@ int main(int argc, char** argv) {
 					break;
 				}
 			}
-			if (n1 <= 0 || n2 <= 0 || n1 > N_STACKS || n2 > N_STACKS || n1 == n2) {
+			if (n1 <= 0 || n2 <= 0 || n1 > N_STACKS || n2 > N_STACKS) {
+				n1 = n2;
 				break;
 			}
 			n1--;
@@ -186,6 +187,7 @@ int main(int argc, char** argv) {
 			break;
 		}
 		}
+		if (n1 == n2) continue;
 		int j1, j2;
 		for (j1 = 0; j1 < 4 && stacks[n1][j1]; j1++);
 		for (j2 = 0; j2 < 4 && stacks[n2][j2]; j2++);
