@@ -32,8 +32,28 @@ void drawstack(int n, char stacks[][5]) {
 
 int main(int argc, char** argv) {
 	int N_STACKS = 10;
-	if (argc > 1) {
-		N_STACKS = atoi(argv[1]);
+	char end_when_done = 0;
+	char strict_mode = 0;
+	for (int k = 1; k < argc; k++) {
+		if (!argv[k][0])
+			continue;
+		if (argv[k][0] == '-')
+			switch (argv[k][1]) {
+			case 'S':
+			case 's':
+				strict_mode = 1;
+				break;
+			case 'T':
+			case 't':
+				end_when_done = 1;
+				break;
+			case 'H':
+			case 'h':
+				printf("Colour sorting game:\n\nthe goal is that all stacks should contain either nothing\nor four identical colours.\n\nMoving colours from  one stack to another is  achieved by\nentering the  number of the first  stack followed  by the\nnumber of  the second stack,  separated by TAB  or ENTER.\nAlternatively, one can navigate  to stacks using left and\nright arrow keys.\n\nOptions:\n\n-s\tcolours can only be  placed on other instances of\n  \tthe same colour\n-t\tcheck  whether the  puzzle is solved and  end the\n  \tgame if it is, print the solving time on exit\n-h\tPrint this message and exit\n");
+				return 0;
+			}
+		else
+			N_STACKS = atoi(argv[k]);
 	}
 	int now = (int) time(0);
 	for (int k = 0; k < now % 1000; k++) rand();
@@ -51,6 +71,7 @@ int main(int argc, char** argv) {
 		init_pair(5, COLOR_WHITE,  COLOR_WHITE);
 		init_pair(6, COLOR_CYAN,   COLOR_CYAN);
 	}
+	char* end_message = "quit";
 	char continue_loop = 1;
 	char stacks[N_STACKS][5];
 	for (int i = 0; i < N_STACKS - 1; i++) {
@@ -75,6 +96,7 @@ int main(int argc, char** argv) {
 		}
 	}
 	int pos = N_STACKS/2;
+	time_t time_start = time(0);
 	while(continue_loop) {
 		clear();
 		for (int n = 0; n < N_STACKS; n++)
@@ -191,14 +213,32 @@ int main(int argc, char** argv) {
 		int j1, j2;
 		for (j1 = 0; j1 < 4 && stacks[n1][j1]; j1++);
 		for (j2 = 0; j2 < 4 && stacks[n2][j2]; j2++);
-		char col = j1 > 0 ? stacks[n1][j1-1] : 0;
+		signed char col = j1 > 0 ? stacks[n1][j1-1] : 0;
+		if (strict_mode && j2 > 0 && stacks[n2][j2-1] != col)
+			continue;
 		while (j1 > 0 && j2 < 4 && stacks[n1][j1-1] == col) {
 			stacks[n2][j2] = stacks[n1][j1-1];
 			stacks[n1][j1-1] = 0;
 			j1--;
 			j2++;
 		}
+		if (end_when_done) {
+			char done = 1;
+			for (int k = 0; done && k < N_STACKS; k++) {
+				char color0 = stacks[k][0];
+				for (int j = 1; j < 4; j++)
+					if (color0 != stacks[k][j])
+						done = 0;
+			}
+			if (done) {
+				end_message = "solved";
+				continue_loop = 0;
+			}
+		}
+
 	}
 	endwin();
+	if (end_when_done)
+		printf("[%s] Finished after %d seconds\n", end_message, (int) (time(0) - time_start));
 	return 0;
 }
