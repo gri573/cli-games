@@ -1,5 +1,8 @@
 CFLAGS += -ggdb -Wall -Wextra
-LDFLAGS += -lncurses -lm
+CFLAGS += -fsanitize=address
+#ncurses is only needed for jumper
+LDFLAGS += -lncurses
+LDFLAGS += -lm
 
 all: 2048 fp sudoku solitaire jumper colorsort
 
@@ -14,6 +17,8 @@ solitaire: solitaire/solitaire.exe
 jumper : jumper/jumper.exe
 
 colorsort : colorsort/colorsort.exe
+
+puyo : puyo/puyo.exe
 
 sudoku/sudoku.exe: sudoku/sudoku.c
 	$(CC) $(CFLAGS) -o sudoku/sudoku.exe $?
@@ -37,6 +42,9 @@ jumper/jumper.exe: jumper/jumper.c
 	$(CC) $(CFLAGS) -o $@ $? $(LDFLAGS)
 
 colorsort/colorsort.exe: colorsort/colorsort.c
+	$(CC) $(CFLAGS) -o $@ $? $(LDFLAGS)
+
+puyo/puyo.exe: puyo/puyo.c
 	$(CC) $(CFLAGS) -o $@ $? $(LDFLAGS)
 
 clean:

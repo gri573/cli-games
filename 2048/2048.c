@@ -101,7 +101,49 @@ int movefield(int swipeAxis, int dir, char field[FS][FS]) {
 	}
 	return changed;
 }
-
+int possibleMoves(char field[FS][FS]) {
+	int returnVal = 0;
+	for (int i = 0; i < 2; i++) {
+		int moveDir[2] = {i%2, (i+1)%2};
+		for (int k = 0; k < FS-1; k++) {
+			for (int j = 0; j < FS; j++) {
+				if (
+					(moveDir[0] == 0 &&
+					 (
+					  field[j][k] == field[j+moveDir[0]][k+moveDir[1]] ||
+					  (field[j][k] && field[j+moveDir[0]][k+moveDir[1]] == 0)
+					  )
+					 ) ||
+					(moveDir[1] == 0 &&
+					 (
+					  field[k][j] == field[k+moveDir[0]][j+moveDir[1]] ||
+					  (field[k][j] && field[k+moveDir[0]][j+moveDir[1]] == 0)
+					  )
+					 )
+					) {
+					returnVal |= 1<<i;
+				}
+				if (
+					(moveDir[0] == 0 &&
+					 (
+					  field[j][k] == field[j+moveDir[0]][k+moveDir[1]] ||
+					  (field[j][k] == 0 && field[j+moveDir[0]][k+moveDir[1]])
+					  )
+					 ) ||
+					(moveDir[1] == 0 &&
+					 (
+					  field[k][j] == field[k+moveDir[0]][j+moveDir[1]] ||
+					  (field[k][j] == 0 && field[k+moveDir[0]][j+moveDir[1]])
+					  )
+					 )
+					) {
+					returnVal |= 1<<(i+2);
+				}
+			}
+		}
+	}
+	return returnVal;
+}
 int main(int argc, char** argv) {
 	int now = (int) time(0);
 	for (int k = 0; k < now % 1000; k++) rand();
@@ -190,6 +232,10 @@ int main(int argc, char** argv) {
 					freecount++;
 				}
 			}
+		}
+		if (!freecount && possibleMoves(field)) {
+			freecount = 1;
+			changed = 0;
 		}
 		if (!won && maxval >= WC) {
 			// system("stty cooked");

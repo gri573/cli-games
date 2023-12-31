@@ -124,6 +124,7 @@ int printframe(int width, int height, char frame[width][height], int color[width
 	}
   }
   color_set(0, NULL);
+  refresh();
   return 0;
 }
 
