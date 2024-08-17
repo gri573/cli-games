@@ -32,9 +32,15 @@ void drawstack(int n, char stacks[][5]) {
 
 int main(int argc, char** argv) {
 	int N_STACKS = 10;
+	int N_COLORS = 6;
 	char end_when_done = 0;
 	char strict_mode = 0;
+	char skip_next = 0;
 	for (int k = 1; k < argc; k++) {
+		if (skip_next) {
+			skip_next = 0;
+			continue;
+		}
 		if (!argv[k][0])
 			continue;
 		if (argv[k][0] == '-')
@@ -51,6 +57,20 @@ int main(int argc, char** argv) {
 			case 'h':
 				printf("Colour sorting game:\n\nthe goal is that all stacks should contain either nothing\nor four identical colours.\n\nMoving colours from  one stack to another is  achieved by\nentering the  number of the first  stack followed  by the\nnumber of  the second stack,  separated by TAB  or ENTER.\nAlternatively, one can navigate  to stacks using left and\nright arrow keys.\n\nOptions:\n\n-s\tcolours can only be  placed on other instances of\n  \tthe same colour\n-t\tcheck  whether the  puzzle is solved and  end the\n  \tgame if it is, print the solving time on exit\n-h\tPrint this message and exit\n");
 				return 0;
+			case 'C':
+			case 'c':
+				if (argc > k+1) {
+					N_COLORS = atoi(argv[k+1]);
+					if (N_COLORS <= 0) {
+						fprintf(stderr, "At least one colour is required!\n");
+						N_COLORS = 1;
+					}
+					if (N_COLORS > 6) {
+						fprintf(stderr, "At most 6 colours are supported!\n");
+						N_COLORS = 6;
+					}
+					skip_next = 1;
+				}
 			}
 		else
 			N_STACKS = atoi(argv[k]);
@@ -75,7 +95,7 @@ int main(int argc, char** argv) {
 	char continue_loop = 1;
 	char stacks[N_STACKS][5];
 	for (int i = 0; i < N_STACKS - 1; i++) {
-		char col = rand() % 6 + 1;
+		char col = rand() % N_COLORS + 1;
 		for (int j = 0; j < 4; j++) {
 			stacks[i][j] = col;
 		}
