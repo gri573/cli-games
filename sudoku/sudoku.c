@@ -208,7 +208,7 @@ int main(int argc, char** argv) {
 			case '8':
 			case '9':
 				if (!orig[cursorLoc[0]][cursorLoc[1]]) {
-					field[cursorLoc[0]][cursorLoc[1]] = action - 48;
+					field[cursorLoc[0]][cursorLoc[1]] = action - '0';
 					correct = 1;
 					for (int x = 0; x < 9; x++) {
 						for (int y = 0; y < 9; y++) {
@@ -223,7 +223,7 @@ int main(int argc, char** argv) {
 						if (!correct) break;
 					}
 					if (correct) {
-						lastCorrect[cursorLoc[0]][cursorLoc[1]] = action - 48;
+						lastCorrect[cursorLoc[0]][cursorLoc[1]] = action - '0';
 					}
 				}
 				break;
@@ -244,7 +244,11 @@ int main(int argc, char** argv) {
 					if (!correct) break;
 				}
 				if (correct) {
-					lastCorrect[cursorLoc[0]][cursorLoc[1]] = 0;
+					for (int x = 0; x < 9; x++) {
+						for (int y = 0; y < 9; y++) {
+							lastCorrect[x][y] = field[x][y];
+						}
+					}
 				}
 				break;
 		}
