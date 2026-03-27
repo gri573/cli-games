@@ -2,6 +2,34 @@
 #include <stdlib.h>
 #include <time.h>
 
+int printSudoku(char field[9][9], int cursor[2]) {
+	printf("\r");
+	char* col[2] = {"\033[1;30m\033[1;47m", "\033[1;37m\033[1;40m"};
+	char* highlightCol[2] = {"\033[1;30m\033[1;41m", "\033[1;30m\033[1;41m"};
+	char* wrongCol[2] = {"\033[1;31m\033[1;47m", "\033[1;31m\033[1;40m"};
+	for (int i = 0; i < 9; i++) {
+		for (int j = 0; j < 9; j++) {
+			int wrong = 0;
+			if (field[i][j] > 0) {
+				for (int k = 0; k < 9 && !wrong; k++) {
+					if (i != k && field[k][j] == field[i][j]) wrong = 1;
+					if (j != k && field[i][k] == field[i][j]) wrong = 1;
+					int offsetPos[2] = {3 * (i / 3) + k % 3, 3 * (j / 3) + k / 3};
+					if (!(offsetPos[0] == i && offsetPos[1] == j) && field[offsetPos[0]][offsetPos[1]] == field[i][j]) wrong = 1;
+				}
+			}
+			if (i == cursor[0] && j == cursor[1]) printf("%s", highlightCol[(i / 3 + j / 3) % 2]);
+			else if (wrong) printf("%s", wrongCol[(i / 3 + j / 3) % 2]);
+			else printf("%s", col[(i / 3 + j / 3) % 2]);
+			if (field[i][j] > 0) printf("%d ", field[i][j]);
+			else printf("  ");
+
+		}
+		printf("\033[1;0m\n\r");
+        }
+	return 0;
+}
+
 int solve(char field[9][9]) {
 	int madeProgress = 1;
 	while (madeProgress) {
@@ -32,41 +60,228 @@ int solve(char field[9][9]) {
 			}
 		}
 	}
-	char full = 1;
 	for (int i = 0; i < 9; i++) {
 		for (int j = 0; j < 9; j++) {
-			if (field[i][j] == 0) full = 0;
+			if (field[i][j] == 0) return 0;
 		}
 	}
-	if (full) return 1;
-	return 0;
+	return 1;
 }
 
-int printSudoku(char field[9][9], int cursor[2]) {
-	printf("\r");
-	char* col[2] = {"\033[1;30m\033[1;47m", "\033[1;37m\033[1;40m"};
-	char* highlightCol[2] = {"\033[1;30m\033[1;41m", "\033[1;30m\033[1;41m"};
-	char* wrongCol[2] = {"\033[1;31m\033[1;47m", "\033[1;31m\033[1;40m"};
+int solveHard(char field[9][9]) {
+	unsigned int possibilities[9][9];
 	for (int i = 0; i < 9; i++) {
 		for (int j = 0; j < 9; j++) {
-			int wrong = 0;
-			if (field[i][j] > 0) {
-				for (int k = 0; k < 9 && !wrong; k++) {
-					if (i != k && field[k][j] == field[i][j]) wrong = 1;
-					if (j != k && field[i][k] == field[i][j]) wrong = 1;
-					int offsetPos[2] = {3 * (i / 3) + k % 3, 3 * (j / 3) + k / 3};
-					if (!(offsetPos[0] == i && offsetPos[1] == j) && field[offsetPos[0]][offsetPos[1]] == field[i][j]) wrong = 1;
+			possibilities[i][j] = 0x1ffu;
+		}
+	}
+	for (int i = 0; i < 9; i++) {
+		for (int j = 0; j < 9; j++) {
+			if (field[i][j]) {
+				unsigned int mask = ~(1<<(field[i][j]-1));
+				int coarsei = i/3*3;
+				int coarsej = j/3*3;
+				for (int k = 0; k < 9; k++) {
+					possibilities[i][k] &= mask;
+					possibilities[k][j] &= mask;
+					possibilities[coarsei+k%3][coarsej+k/3] &= mask;
+				}
+				possibilities[i][j] = ~mask;
+			}
+		}
+	}
+	int totalPossible = 0;
+	for (int i = 0; i < 9; i++) {
+		for (int j = 0; j < 9; j++) {
+			for (int k = 0; k < 9; k++) {
+				totalPossible += !!(possibilities[i][j] & (1<<k));
+			}
+		}
+	}
+	for (int iter = 0; 1; iter++) {
+		for (int i = 0; i < 9; i++) {
+			for (int j = 0; j < 9; j++) {
+				if (field[i][j]) continue;
+				if (possibilities[i][j] == 0) {
+					printf("no possibles at (%d, %d)!\n", i, j);
+					int cursor[2];
+					cursor[0] = i;
+					cursor[1] = j;
+					printSudoku(field, cursor);
+					printf("\n");
+					return -1;
+				}
+				unsigned int iMask = 0;
+				unsigned int jMask = 0;
+				unsigned int tileMask = 0;
+				int coarsei = i/3*3;
+				int coarsej = j/3*3;
+				for (int k = 0; k < 9; k++) {
+					if (k != j) {
+						iMask |= possibilities[i][k];
+					}
+					if (k != i) {
+						jMask |= possibilities[k][j];
+					}
+					int newi = coarsei + k%3;
+					int newj = coarsej + k/3;
+					if (newi != i || newj != j) {
+						tileMask |= possibilities[newi][newj];
+					}
+				}
+				unsigned int exclusivePossible = possibilities[i][j] & ~(iMask & jMask & tileMask);
+				if (exclusivePossible) {
+					char val = 0;
+					for (int k = 0; k < 9; k++) {
+						if (exclusivePossible & (1<<k)) {
+							if (val) return -1;
+							val = k+1;
+						}
+					}
+					field[i][j] = val;
+					possibilities[i][j] = 1<<(val-1);
+				}
+				signed char baseval = 0;
+				for (int k = 0; k < 9; k++) {
+					if (possibilities[i][j] & (1<<k)) {
+						if (baseval) baseval = -1;
+						else baseval = k+1;
+					}
+				}
+				if (baseval > 0 && !field[i][j]) {
+					field[i][j] = baseval;
 				}
 			}
-			if (i == cursor[0] && j == cursor[1]) printf("%s", highlightCol[(i / 3 + j / 3) % 2]);
-			else if (wrong) printf("%s", wrongCol[(i / 3 + j / 3) % 2]);
-			else printf("%s", col[(i / 3 + j / 3) % 2]);
-			if (field[i][j] > 0) printf("%d ", field[i][j]);
-			else printf("  ");
 		}
-		printf("\033[1;0m\n\r");
-        }
-	return 0;
+		for (int i = 0; i < 9; i++) {
+			for (int j = 0; j < 9; j++) {
+				if (field[i][j]) {
+					unsigned int mask = ~(1<<(field[i][j]-1));
+					int coarsei = i/3*3;
+					int coarsej = j/3*3;
+					for (int k = 0; k < 9; k++) {
+						possibilities[i][k] &= mask;
+						possibilities[k][j] &= mask;
+						possibilities[coarsei+k%3][coarsej+k/3] &= mask;
+					}
+					possibilities[i][j] = ~mask;
+				}
+			}
+		}
+		for (int j = 0; j < 9; j++) {
+			for (int k = 0; k < 9; k++) {
+				int coarsei = 3;
+				for (int i = 0; i < 9; i++) {
+					if (possibilities[i][j] & (1<<k)) {
+						if (coarsei == 3) {
+							coarsei = i/3;
+						} else if (coarsei != i/3) {
+							coarsei = -1;
+						}
+					}
+				}
+				if (coarsei == 3) return -1;
+				if (coarsei >= 0) {
+					int coarsej = j/3*3;
+					coarsei *= 3;
+					for (int l = 0; l < 6; l++) {
+						int newj = coarsej + (j+l/3+1)%3;
+						int newi = coarsei + l%3;
+						if (field[newi][newj]) continue;
+
+						possibilities[newi][newj] &= ~(1<<k);
+					}
+				}
+			}
+		}
+
+		for (int i = 0; i < 9; i++) {
+			for (int k = 0; k < 9; k++) {
+				int coarsej = 3;
+				for (int j = 0; j < 9; j++) {
+					if (possibilities[i][j] & (1<<k)) {
+						if (coarsej == 3) {
+							coarsej = j/3;
+						} else if (coarsej != j/3) {
+							coarsej = -1;
+						}
+					}
+				}
+				if (coarsej == 3) return -1;
+				if (coarsej >= 0) {
+					int coarsei = i/3*3;
+					coarsej *= 3;
+					for (int l = 0; l < 6; l++) {
+						int newi = coarsei + (i+l/3+1)%3;
+						int newj = coarsej + l%3;
+						if (field[newi][newj]) continue;
+
+						possibilities[newi][newj] &= ~(1<<k);
+					}
+				}
+			}
+		}
+
+		for (int coarsei = 0; coarsei < 9; coarsei += 3) {
+			for (int coarsej = 0; coarsej < 9; coarsej += 3) {
+				for (int k = 0; k < 9; k++) {
+					int exclusivei = 9;
+					int exclusivej = 9;
+					for (int i = coarsei; i < coarsei + 3; i++) {
+						for (int j = coarsej; j < coarsej + 3; j++) {
+							if (possibilities[i][j] & (1<<k)) {
+								if (exclusivei == 9) {
+									exclusivei = i;
+									exclusivej = j;
+								}
+								if (exclusivei != i) {
+									exclusivei = -1;
+								}
+								if (exclusivej != j) {
+									exclusivej = -1;
+								}
+							}
+						}
+					}
+					if (exclusivei == 9) return -1;
+					if (exclusivei >= 0) {
+						for (int j = 0; j < 9; j++) {
+							if (j/3*3 == coarsej || field[exclusivei][j]) continue;
+
+							possibilities[exclusivei][j] &= ~(1<<k);
+						}
+					}
+					if (exclusivej >= 0) {
+						for (int i = 0; i < 9; i++) {
+							if (i/3*3 == coarsei || field[i][exclusivej]) continue;
+
+							possibilities[i][exclusivej] &= ~(1<<k);
+						}
+					}
+				}
+			}
+		}
+		int oldPossible = totalPossible;
+		totalPossible = 0;
+		for (int i = 0; i < 9; i++) {
+			for (int j = 0; j < 9; j++) {
+
+				for (int k = 0; k < 9; k++) {
+					totalPossible += !!(possibilities[i][j] & (1<<k));
+				}
+			}
+
+		}
+		if (oldPossible == totalPossible) {
+			break;
+		}
+	}
+	for (int i = 0; i < 9; i++) {
+		for (int j = 0; j < 9; j++) {
+			if (field[i][j] == 0) return 0;
+		}
+	}
+	return 1;
 }
 
 int genSudoku(char field[9][9]) {
@@ -106,7 +321,7 @@ int genSudoku(char field[9][9]) {
 	return 0;
 }
 
-int hardenSudoku(char field[9][9]) {
+int hardenSudoku(char field[9][9], int hardness) {
 	char solveField[9][9];
 	for (int i = 0; i < 9; i++) {
 		for (int j = 0; j < 9; j++) {
@@ -114,12 +329,14 @@ int hardenSudoku(char field[9][9]) {
 			if (!prevEntry) continue;
 			field[i][j] = 0;
 			for (int k = 0; k < 9; k++) for (int l = 0; l < 9; l++) solveField[k][l] = field[k][l];
-			int done = solve(solveField);
+			int done;
+			if (hardness == 0) done = solve(solveField);
+			else done = solveHard(solveField);
 			if (done != 1) field[i][j] = prevEntry;
-			//else printf("removed %d at (%d, %d)\n", prevEntry, i, j);
+			// else printf("removed %d at (%d, %d)\n", prevEntry, i, j);
 		}
 	}
-	printf("Hardened Sudoku\n");
+	printf("Hardened Sudoku to level %d\n", hardness + 1);
 	return 0;
 }
 
@@ -129,12 +346,18 @@ int main(int argc, char** argv) {
 	if (argc > 1) {
 		char hard = 1;
 		for (int i = 0; argv[1][i] && i < 3; i++) if (argv[1][i] != "-H"[i]) hard = 0;
-		if (hard) hardenSudoku(field);
-		else {
+		if (!hard) {
 			hard = 1;
 			for (int i = 0; argv[1][i] && i < 6; i++) if (argv[1][i] != "--hard"[i]) hard = 0;
-			if (hard) hardenSudoku(field);
 		}
+		char extraHard = 1;
+		for (int i = 0; argv[1][i] && i < 4; i++) if (argv[1][i] != "-EH"[i]) extraHard = 0;
+		if (!extraHard) {
+			extraHard = 1;
+			for (int i = 0; argv[1][i] && i < 11; i++) if (argv[1][i] != "--extrahard"[i]) extraHard = 0;
+		}
+		if (hard || extraHard) hardenSudoku(field, 0);
+		if (extraHard) hardenSudoku(field, 1);
 	}
 	char orig[9][9];
 	char solution[9][9];
