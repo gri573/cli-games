@@ -343,7 +343,7 @@ int hardenSudoku(char field[9][9], int hardness) {
 int main(int argc, char** argv) {
 	char field[9][9] = {{0}};
 	genSudoku(field);
-	char showCorrect = 1;
+	char showCorrect = 0;
 	for (int arg = 1; arg < argc; arg++) {
 		char hard = 1;
 		for (int i = 0; argv[1][i] && i < 3; i++) if (argv[1][i] != "-H"[i]) hard = 0;
@@ -357,13 +357,15 @@ int main(int argc, char** argv) {
 			extraHard = 1;
 			for (int i = 0; argv[1][i] && i < 11; i++) if (argv[1][i] != "--extrahard"[i]) extraHard = 0;
 		}
-		for (int i = 0; argv[1][i] && i < 4; i++) if (argv[1][i] != "-c"[i]) showCorrect = 0;
-		if (!showCorrect) {
-			showCorrect = 1;
-			for (int i = 0; argv[1][i] && i < 11; i++) if (argv[1][i] != "--showcorrect"[i]) showCorrect = 0;
+		char thisShowCorrect = 1;
+		for (int i = 0; argv[1][i] && i < 4; i++) if (argv[1][i] != "-c"[i]) thisShowCorrect = 0;
+		if (!thisShowCorrect) {
+			thisShowCorrect = 1;
+			for (int i = 0; argv[1][i] && i < 14; i++) if (argv[1][i] != "--showcorrect"[i]) thisShowCorrect = 0;
 		}
+		if (thisShowCorrect) showCorrect = 1;
 
-		if (hard || extraHard) hardenSudoku(field, 0);
+		if (hard) hardenSudoku(field, 0);
 		if (extraHard) hardenSudoku(field, 1);
 	}
 	char orig[9][9];
