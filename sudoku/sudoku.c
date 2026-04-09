@@ -343,7 +343,8 @@ int hardenSudoku(char field[9][9], int hardness) {
 int main(int argc, char** argv) {
 	char field[9][9] = {{0}};
 	genSudoku(field);
-	if (argc > 1) {
+	char showCorrect = 1;
+	for (int arg = 1; arg < argc; arg++) {
 		char hard = 1;
 		for (int i = 0; argv[1][i] && i < 3; i++) if (argv[1][i] != "-H"[i]) hard = 0;
 		if (!hard) {
@@ -356,6 +357,12 @@ int main(int argc, char** argv) {
 			extraHard = 1;
 			for (int i = 0; argv[1][i] && i < 11; i++) if (argv[1][i] != "--extrahard"[i]) extraHard = 0;
 		}
+		for (int i = 0; argv[1][i] && i < 4; i++) if (argv[1][i] != "-c"[i]) showCorrect = 0;
+		if (!showCorrect) {
+			showCorrect = 1;
+			for (int i = 0; argv[1][i] && i < 11; i++) if (argv[1][i] != "--showcorrect"[i]) showCorrect = 0;
+		}
+
 		if (hard || extraHard) hardenSudoku(field, 0);
 		if (extraHard) hardenSudoku(field, 1);
 	}
@@ -447,7 +454,8 @@ int main(int argc, char** argv) {
 					}
 					if (correct) {
 						lastCorrect[cursorLoc[0]][cursorLoc[1]] = action - '0';
-					}
+						if (showCorrect) printf("Correct!\n\r");
+					} else if (showCorrect) printf("Not correct!\n\r");
 				}
 				break;
 			case ' ':
