@@ -346,22 +346,22 @@ int main(int argc, char** argv) {
 	char showCorrect = 0;
 	for (int arg = 1; arg < argc; arg++) {
 		char hard = 1;
-		for (int i = 0; argv[1][i] && i < 3; i++) if (argv[1][i] != "-H"[i]) hard = 0;
+		for (int i = 0; argv[arg][i] && i < 3; i++) if (argv[arg][i] != "-H"[i]) hard = 0;
 		if (!hard) {
 			hard = 1;
-			for (int i = 0; argv[1][i] && i < 6; i++) if (argv[1][i] != "--hard"[i]) hard = 0;
+			for (int i = 0; argv[arg][i] && i < 6; i++) if (argv[arg][i] != "--hard"[i]) hard = 0;
 		}
 		char extraHard = 1;
-		for (int i = 0; argv[1][i] && i < 4; i++) if (argv[1][i] != "-EH"[i]) extraHard = 0;
+		for (int i = 0; argv[arg][i] && i < 4; i++) if (argv[arg][i] != "-EH"[i]) extraHard = 0;
 		if (!extraHard) {
 			extraHard = 1;
-			for (int i = 0; argv[1][i] && i < 11; i++) if (argv[1][i] != "--extrahard"[i]) extraHard = 0;
+			for (int i = 0; argv[arg][i] && i < 11; i++) if (argv[arg][i] != "--extrahard"[i]) extraHard = 0;
 		}
 		char thisShowCorrect = 1;
-		for (int i = 0; argv[1][i] && i < 4; i++) if (argv[1][i] != "-c"[i]) thisShowCorrect = 0;
+		for (int i = 0; argv[arg][i] && i < 4; i++) if (argv[arg][i] != "-c"[i]) thisShowCorrect = 0;
 		if (!thisShowCorrect) {
 			thisShowCorrect = 1;
-			for (int i = 0; argv[1][i] && i < 14; i++) if (argv[1][i] != "--showcorrect"[i]) thisShowCorrect = 0;
+			for (int i = 0; argv[arg][i] && i < 14; i++) if (argv[arg][i] != "--showcorrect"[i]) thisShowCorrect = 0;
 		}
 		if (thisShowCorrect) showCorrect = 1;
 
