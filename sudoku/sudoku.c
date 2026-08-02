@@ -378,7 +378,7 @@ int main(int argc, char** argv) {
 			lastCorrect[i][j] = field[i][j];
 		}
 	}
-	solve(solution);
+	solveHard(solution);
 	int solved = 0;
 	int correct = 1;
 	int cursorLoc[2] = {4, 4};
