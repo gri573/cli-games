@@ -11,11 +11,14 @@ int printSudoku(char field[9][9], int cursor[2]) {
 		for (int j = 0; j < 9; j++) {
 			int wrong = 0;
 			if (field[i][j] > 0) {
-				for (int k = 0; k < 9 && !wrong; k++) {
+				for (int k = 0; k < 9; k++) {
 					if (i != k && field[k][j] == field[i][j]) wrong = 1;
 					if (j != k && field[i][k] == field[i][j]) wrong = 1;
 					int offsetPos[2] = {3 * (i / 3) + k % 3, 3 * (j / 3) + k / 3};
-					if (!(offsetPos[0] == i && offsetPos[1] == j) && field[offsetPos[0]][offsetPos[1]] == field[i][j]) wrong = 1;
+					if (!(offsetPos[0] == i && offsetPos[1] == j) && field[offsetPos[0]][offsetPos[1]] == field[i][j]) {
+						wrong = 1;
+						break;
+					}
 				}
 			}
 			if (i == cursor[0] && j == cursor[1]) printf("%s", highlightCol[(i / 3 + j / 3) % 2]);
@@ -284,6 +287,37 @@ int solveHard(char field[9][9]) {
 	return 1;
 }
 
+int solveWF(char field[9][9], int shouldSolve) {
+	int foundSolutionCount = 0;
+	for (int i = 0; i < 9; i++) {
+		for (int j = 0; j < 9; j++) {
+			if (field[i][j]) continue;
+			for (int k = 1; k <= 9; k++) {
+				int wrong = 0;
+				for (int l = 0; l < 9; l++) {
+					if (field[i][l] == k || field[l][j] == k || field[i/3*3+l%3][j/3*3+l/3] == k) wrong = 1;
+				}
+				if (wrong) continue;
+				field[i][j] = k;
+					
+				int solvability = solveWF(field, shouldSolve);
+				foundSolutionCount += solvability >= 0 ? 2 - solvability : 0;
+				if (foundSolutionCount > 1) {
+					if (!shouldSolve) field[i][j] = 0;
+					return 0;
+				}
+			}
+			if (!shouldSolve) field[i][j] = 0;
+			if (foundSolutionCount == 0) {
+				field[i][j] = 0;
+				return -1;
+			}
+			return 1;
+		}
+	}
+	return 1;
+}
+
 int genSudoku(char field[9][9]) {
 	int now = (int) time(0);
 	for (int k = 0; k < now % 1000; k++) rand();
@@ -331,9 +365,10 @@ int hardenSudoku(char field[9][9], int hardness) {
 			for (int k = 0; k < 9; k++) for (int l = 0; l < 9; l++) solveField[k][l] = field[k][l];
 			int done;
 			if (hardness == 0) done = solve(solveField);
-			else done = solveHard(solveField);
+			else if (hardness == 1) done = solveHard(solveField);
+			else done = solveWF(solveField, 0);
 			if (done != 1) field[i][j] = prevEntry;
-			// else printf("removed %d at (%d, %d)\n", prevEntry, i, j);
+			//else printf("removed %d at (%d, %d)\n", prevEntry, i, j);
 		}
 	}
 	printf("Hardened Sudoku to level %d\n", hardness + 1);
@@ -349,24 +384,40 @@ int main(int argc, char** argv) {
 		for (int i = 0; argv[arg][i] && i < 3; i++) if (argv[arg][i] != "-H"[i]) hard = 0;
 		if (!hard) {
 			hard = 1;
-			for (int i = 0; argv[arg][i] && i < 6; i++) if (argv[arg][i] != "--hard"[i]) hard = 0;
+			for (int i = 0; argv[arg][i] && i < 7; i++) if (argv[arg][i] != "--hard"[i]) hard = 0;
 		}
 		char extraHard = 1;
 		for (int i = 0; argv[arg][i] && i < 4; i++) if (argv[arg][i] != "-EH"[i]) extraHard = 0;
 		if (!extraHard) {
 			extraHard = 1;
-			for (int i = 0; argv[arg][i] && i < 11; i++) if (argv[arg][i] != "--extrahard"[i]) extraHard = 0;
+			for (int i = 0; argv[arg][i] && i < 12; i++) if (argv[arg][i] != "--extrahard"[i]) extraHard = 0;
+		}
+		char hardest = 1;
+		for (int i = 0; argv[arg][i] && i < 5; i++) if (argv[arg][i] != "-EEH"[i]) hardest = 0;
+		if (!hardest) {
+			hardest = 1;
+			for (int i = 0; argv[arg][i] && i < 10; i++) if (argv[arg][i] != "--hardest"[i]) hardest = 0;
 		}
 		char thisShowCorrect = 1;
-		for (int i = 0; argv[arg][i] && i < 4; i++) if (argv[arg][i] != "-c"[i]) thisShowCorrect = 0;
+		for (int i = 0; argv[arg][i] && i < 3; i++) if (argv[arg][i] != "-c"[i]) thisShowCorrect = 0;
 		if (!thisShowCorrect) {
 			thisShowCorrect = 1;
 			for (int i = 0; argv[arg][i] && i < 14; i++) if (argv[arg][i] != "--showcorrect"[i]) thisShowCorrect = 0;
 		}
-		if (thisShowCorrect) showCorrect = 1;
+		char help = 1;
+		for (int i = 0; argv[arg][i] && i < 3; i++) if (argv[arg][i] != "-h"[i]) help = 0;
+		if (!help) {
+			help = 1;
+			for (int i = 0; argv[arg][i] && i < 7; i++) if (argv[arg][i] != "--help"[i]) help = 0;
+		}
+		if (help) {
+			printf("Sudoku\nUsage: sudoku.exe [options]\n\nOptions:\n -h    --help        Display this help message and exit\n -H    --hard        Remove some unneeded values from sudoku\n -EH   --extrahard   Remove more unneeded values from sudoku\n -EEH  --hardest     Remove all unneeded values from sudoku\n -c    --showcorrect Print info about whether the sudoku\n                     is correct after each move\n");
+			return 0;
+		}
 
 		if (hard) hardenSudoku(field, 0);
 		if (extraHard) hardenSudoku(field, 1);
+		if (hardest) hardenSudoku(field, 2);
 	}
 	char orig[9][9];
 	char solution[9][9];
@@ -378,7 +429,7 @@ int main(int argc, char** argv) {
 			lastCorrect[i][j] = field[i][j];
 		}
 	}
-	solveHard(solution);
+	solveWF(solution, 1);
 	int solved = 0;
 	int correct = 1;
 	int cursorLoc[2] = {4, 4};
