@@ -289,27 +289,42 @@ int solveHard(char field[9][9]) {
 
 int solveWF(char field[9][9], int shouldSolve) {
 	int foundSolutionCount = 0;
+	char solveCopy0[9][9];
+	char (* solveCopy)[9];
+	if (shouldSolve) {
+		solveCopy = field;
+	} else {
+		solveCopy = solveCopy0;
+		for (int i = 0; i < 9; i++) {
+			for (int j = 0; j < 9; j++) {
+				solveCopy[i][j] = field[i][j];
+			}
+		}
+	}
+	int simpleSolvability = solveHard(solveCopy);
+	if (simpleSolvability <= 0) {
+		return simpleSolvability;
+	}
 	for (int i = 0; i < 9; i++) {
 		for (int j = 0; j < 9; j++) {
-			if (field[i][j]) continue;
+			if (solveCopy[i][j]) continue;
 			for (int k = 1; k <= 9; k++) {
 				int wrong = 0;
 				for (int l = 0; l < 9; l++) {
-					if (field[i][l] == k || field[l][j] == k || field[i/3*3+l%3][j/3*3+l/3] == k) wrong = 1;
+					if (solveCopy[i][l] == k || solveCopy[l][j] == k || solveCopy[i/3*3+l%3][j/3*3+l/3] == k) wrong = 1;
 				}
 				if (wrong) continue;
-				field[i][j] = k;
+				solveCopy[i][j] = k;
 					
-				int solvability = solveWF(field, shouldSolve);
+				int solvability = solveWF(solveCopy, shouldSolve);
 				foundSolutionCount += solvability >= 0 ? 2 - solvability : 0;
 				if (foundSolutionCount > 1) {
-					if (!shouldSolve) field[i][j] = 0;
+					if (!shouldSolve) solveCopy[i][j] = 0;
 					return 0;
 				}
 			}
-			if (!shouldSolve) field[i][j] = 0;
 			if (foundSolutionCount == 0) {
-				field[i][j] = 0;
+				solveCopy[i][j] = 0;
 				return -1;
 			}
 			return 1;
