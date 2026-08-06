@@ -29,7 +29,28 @@ int printSudoku(char field[9][9], int cursor[2]) {
 
 		}
 		printf("\033[1;0m\n\r");
-        }
+		}
+	return 0;
+}
+
+int printSudokuPrintable(char field[9][9]) {
+	for (int i = 0; i < 9; i++) {
+		for (int j = 0; j < 9; j++) {
+			if (j % 3 != 2 && j < 8) {
+				if (field[i][j]) printf("%d ", field[i][j]);
+				else printf("  ");
+			} else if (j < 8) {
+				if (field[i][j]) printf("%d|", field[i][j]);
+				else printf(" |");
+			} else {
+				if (field[i][j]) printf("%d\n", field[i][j]);
+				else printf(" \n");
+			}
+		}
+		if (i % 3 == 2 && i < 8) {
+			printf("-----+-----+-----\n");
+		}
+	}
 	return 0;
 }
 
@@ -106,12 +127,6 @@ int solveHard(char field[9][9]) {
 			for (int j = 0; j < 9; j++) {
 				if (field[i][j]) continue;
 				if (possibilities[i][j] == 0) {
-					printf("no possibles at (%d, %d)!\n", i, j);
-					int cursor[2];
-					cursor[0] = i;
-					cursor[1] = j;
-					printSudoku(field, cursor);
-					printf("\n");
 					return -1;
 				}
 				unsigned int iMask = 0;
@@ -289,20 +304,21 @@ int solveHard(char field[9][9]) {
 
 int solveWF(char field[9][9], int shouldSolve) {
 	int foundSolutionCount = 0;
-	char solveCopy0[9][9];
-	char (* solveCopy)[9];
-	if (shouldSolve) {
-		solveCopy = field;
-	} else {
-		solveCopy = solveCopy0;
-		for (int i = 0; i < 9; i++) {
-			for (int j = 0; j < 9; j++) {
-				solveCopy[i][j] = field[i][j];
-			}
+	char solveCopy[9][9];
+	for (int i = 0; i < 9; i++) {
+		for (int j = 0; j < 9; j++) {
+			solveCopy[i][j] = field[i][j];
 		}
 	}
 	int simpleSolvability = solveHard(solveCopy);
-	if (simpleSolvability <= 0) {
+	if (simpleSolvability) {
+		if(simpleSolvability != -1 && shouldSolve) {
+			for (int i = 0; i < 9; i++) {
+				for (int j = 0; j < 9; j++) {
+					field[i][j] = solveCopy[i][j];
+				}
+			}
+		}
 		return simpleSolvability;
 	}
 	for (int i = 0; i < 9; i++) {
@@ -319,13 +335,16 @@ int solveWF(char field[9][9], int shouldSolve) {
 				int solvability = solveWF(solveCopy, shouldSolve);
 				foundSolutionCount += solvability >= 0 ? 2 - solvability : 0;
 				if (foundSolutionCount > 1) {
-					if (!shouldSolve) solveCopy[i][j] = 0;
 					return 0;
 				}
 			}
 			if (foundSolutionCount == 0) {
-				solveCopy[i][j] = 0;
 				return -1;
+			}
+			for (int i = 0; i < 9; i++) {
+				for (int j = 0; j < 9; j++) {
+					field[i][j] = solveCopy[i][j];
+				}
 			}
 			return 1;
 		}
@@ -366,7 +385,7 @@ int genSudoku(char field[9][9]) {
 		}
 		tryCount++;
 	}
-	printf("found valid sudoku in %d iterations\n", tryCount);
+	fprintf(stderr, "found valid sudoku in %d iterations\n", tryCount);
 	return 0;
 }
 
@@ -383,10 +402,11 @@ int hardenSudoku(char field[9][9], int hardness) {
 			else if (hardness == 1) done = solveHard(solveField);
 			else done = solveWF(solveField, 0);
 			if (done != 1) field[i][j] = prevEntry;
-			//else printf("removed %d at (%d, %d)\n", prevEntry, i, j);
+			//else fprintf(stderr, "removed %d at (%d, %d)", prevEntry, i, j);
+			//fprintf(stderr, "\n");
 		}
 	}
-	printf("Hardened Sudoku to level %d\n", hardness + 1);
+	fprintf(stderr, "Hardened Sudoku to level %d\n", hardness + 1);
 	return 0;
 }
 
@@ -394,6 +414,7 @@ int main(int argc, char** argv) {
 	char field[9][9] = {{0}};
 	genSudoku(field);
 	char showCorrect = 0;
+	char shouldPrint = 0;
 	for (int arg = 1; arg < argc; arg++) {
 		char hard = 1;
 		for (int i = 0; argv[arg][i] && i < 3; i++) if (argv[arg][i] != "-H"[i]) hard = 0;
@@ -419,6 +440,18 @@ int main(int argc, char** argv) {
 			thisShowCorrect = 1;
 			for (int i = 0; argv[arg][i] && i < 14; i++) if (argv[arg][i] != "--showcorrect"[i]) thisShowCorrect = 0;
 		}
+		if (thisShowCorrect) {
+			showCorrect = 1;
+		}
+		char thisShouldPrint = 1;
+		for (int i = 0; argv[arg][i] && i < 3; i++) if (argv[arg][i] != "-p"[i]) thisShouldPrint = 0;
+		if (!thisShouldPrint) {
+			thisShouldPrint = 1;
+			for (int i = 0; argv[arg][i] && i < 8; i++) if (argv[arg][i] != "--print"[i]) thisShouldPrint = 0;
+		}
+		if (thisShouldPrint) {
+			shouldPrint = 1;
+		}
 		char help = 1;
 		for (int i = 0; argv[arg][i] && i < 3; i++) if (argv[arg][i] != "-h"[i]) help = 0;
 		if (!help) {
@@ -426,13 +459,17 @@ int main(int argc, char** argv) {
 			for (int i = 0; argv[arg][i] && i < 7; i++) if (argv[arg][i] != "--help"[i]) help = 0;
 		}
 		if (help) {
-			printf("Sudoku\nUsage: sudoku.exe [options]\n\nOptions:\n -h    --help        Display this help message and exit\n -H    --hard        Remove some unneeded values from sudoku\n -EH   --extrahard   Remove more unneeded values from sudoku\n -EEH  --hardest     Remove all unneeded values from sudoku\n -c    --showcorrect Print info about whether the sudoku\n                     is correct after each move\n");
+			printf("Sudoku\nUsage: sudoku.exe [options]\n\nOptions:\n -h    --help        Display this help message and exit\n -H    --hard        Remove some unneeded values from sudoku\n -EH   --extrahard   Remove more unneeded values from sudoku\n -EEH  --hardest     Remove all unneeded values from sudoku\n -c    --showcorrect Print info about whether the sudoku\n                     is correct after each move\n -p    --print       Output generated sudoku without\n                     non-printable characters (such as colour codes) and exit\n");
 			return 0;
 		}
 
 		if (hard) hardenSudoku(field, 0);
 		if (extraHard) hardenSudoku(field, 1);
 		if (hardest) hardenSudoku(field, 2);
+	}
+	if (shouldPrint) {
+		printSudokuPrintable(field);
+		return 0;
 	}
 	char orig[9][9];
 	char solution[9][9];
